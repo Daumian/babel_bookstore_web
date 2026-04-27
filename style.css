@@ -1,0 +1,153 @@
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    background-color: #f4f7f6; 
+    color: #333;
+    margin: 0; 
+    padding: 20px; 
+}
+
+.container { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+}
+
+/* --- Buscador y Filtros --- */
+.header { 
+    text-align: center; 
+    margin-bottom: 40px; 
+}
+
+.search-bar { 
+    width: 100%; 
+    max-width: 500px; 
+    padding: 12px 20px; 
+    font-size: 16px; 
+    border-radius: 25px; 
+    border: 1px solid #ccc; 
+    margin-bottom: 15px;
+    outline: none;
+}
+
+.filters { 
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    flex-wrap: wrap; 
+}
+
+select { 
+    padding: 8px 12px; 
+    border-radius: 5px; 
+    border: 1px solid #ddd; 
+    cursor: pointer; 
+}
+
+/* --- Cuadrícula --- */
+.grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+    gap: 20px; 
+}
+
+/* --- Tarjeta de Libro --- */
+.card { 
+    background: white; 
+    padding: 10px; 
+    border-radius: 10px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    text-align: center; 
+    position: relative; 
+    overflow: hidden; 
+}
+
+.card img { 
+    width: 100%; 
+    height: 280px; 
+    object-fit: cover; 
+    border-radius: 5px; 
+    transition: filter 0.3s ease;
+}
+
+.card h3 { 
+    font-size: 16px; 
+    margin: 10px 0 5px; 
+    min-height: 40px; 
+}
+
+/* Estilo del Autor */
+.card .autor {
+    font-size: 13px;
+    color: #888;
+    margin: -5px 0 10px 0;
+    font-style: italic;
+}
+
+.flag { 
+    font-size: 20px; 
+}
+
+/* --- BOTÓN WHATSAPP --- */
+.btn-consultar {
+    position: absolute;
+    top: 40%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #25D366; 
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0; 
+    visibility: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.card:hover img {
+    filter: blur(2px) brightness(0.8); 
+}
+
+.card:hover .btn-consultar {
+    opacity: 1; 
+    visibility: visible;
+    top: 45%; 
+}
+
+.btn-consultar:hover {
+    background-color: #128C7E; 
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* --- Mensaje sin resultados --- */
+.no-results { 
+    grid-column: 1 / -1; 
+    padding: 50px; 
+    color: #888; 
+    text-align: center; 
+}
+
+/* --- Diseño compacto para libros sin portada --- */
+.card.no-photo {
+    padding: 15px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.card.no-photo img {
+    width: 80px; /* Imagen mucho más pequeña */
+    height: 80px; 
+    margin: 0 auto 10px auto; /* Centrado */
+    border-radius: 8px;
+    object-fit: contain; /* Para que el icono no se deforme */
+    box-shadow: none;
+}
+
+/* Opcional: Centrar mejor el título cuando no hay foto grande */
+.card.no-photo h3 {
+    min-height: auto;
+    margin-top: 5px;
+}

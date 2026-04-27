@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformador CSV a JSON</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --container-bg: #ffffff;
+            --primary: #4A90E2;
+            --primary-hover: #357ABD;
+            --text-main: #333333;
+            --border: #cccccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-wrapper {
+            border: 2px dashed var(--border);
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            background-color: #fafafa;
+            transition: background-color 0.3s;
+        }
+
+        .file-upload-wrapper:hover {
+            background-color: #f0f8ff;
+            border-color: var(--primary);
+        }
+
+        input[type="file"] {
+            font-size: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            resize: vertical;
+            box-sizing: border-box;
+            background-color: #fcfcfc;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex: 1;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button:disabled {
+            background-color: #a0c4eb;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #28a745;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Transformador de CSV a JSON</h1>
+    
+    <div class="controls">
+        <div class="file-upload-wrapper">
+            <label for="csvFileInput" style="display:block; margin-bottom: 10px; font-weight: bold;">Sube tu archivo CSV exportado desde Excel:</label>
+            <input type="file" id="csvFileInput" accept=".csv" />
+        </div>
+    </div>
+
+    <textarea id="jsonOutput" placeholder="Aquí aparecerá tu JSON..." readonly></textarea>
+
+    <div class="buttons">
+        <button id="btnCopy" onclick="copyToClipboard()" disabled>Copiar JSON</button>
+        <button id="btnDownload" onclick="downloadJSON()" disabled>Descargar archivo .json</button>
+    </div>
+    <div class="status" id="statusMessage"></div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('csvFileInput');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnDownload = document.getElementById('btnDownload');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let currentJsonData = null;
+
+    // Escuchar cuando se sube un archivo
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const csvText = event.target.result;
+            processCSV(csvText);
+        };
+        reader.readAsText(file);
+    });
+
+    // Detectar si Excel guardó con comas o puntos y comas
+    function detectDelimiter(text) {
+        const firstLine = text.split('\n')[0];
+        const commas = (firstLine.match(/,/g) || []).length;
+        const semicolons = (firstLine.match(/;/g) || []).length;
+        return semicolons > commas ? ';' : ',';
+    }
+
+    // Convertir el texto CSV a un Array 2D respetando las comillas
+    function csvToArray(text, delimiter) {
+        let p = '', row = [''], ret = [row], i = 0, r = 0, s = !0, l;
+        for (l of text) {
+            if ('"' === l) {
+                if (s && l === p) row[i] += l;
+                s = !s;
+            } else if (delimiter === l && s) l = row[++i] = '';
+            else if ('\n' === l && s) {
+                if ('\r' === p) row[i] = row[i].slice(0, -1);
+                row = ret[++r] = [l = '']; i = 0;
+            } else row[i] += l;
+            p = l;
+        }
+        // Limpiar última fila si está vacía
+        if (ret[ret.length - 1][0] === '' && ret[ret.length - 1].length === 1) {
+            ret.pop();
+        }
+        return ret;
+    }
+
+    // Mapeo de "Estado" a número ("Calidad")
+    function parseCalidad(estado) {
+        if (!estado) return null;
+        const e = estado.trim().toLowerCase();
+        if (e === 'excelente') return 90.0;
+        if (e === 'muy buena' || e === 'muy bueno') return 80.0;
+        if (e === 'buena' || e === 'bueno') return 70.0;
+        if (e === 'media' || e === 'medio') return 60.0;
+        if (e === 'mala' || e === 'malo') return 40.0;
+        return null; // Fallback para celdas vacías o estados no contemplados
+    }
+
+    // Lógica principal de transformación
+    function processCSV(csvText) {
+        const delimiter = detectDelimiter(csvText);
+        const dataArray = csvToArray(csvText, delimiter);
+
+        if (dataArray.length < 2) {
+            showStatus("El archivo CSV parece estar vacío o no tiene encabezados.", "red");
+            return;
+        }
+
+        const headers = dataArray[0].map(h => h.trim());
+        
+        // Encontrar los índices de las columnas sin importar mayúsculas/minúsculas
+        const idxNombre = headers.findIndex(h => h.toLowerCase().includes('nombre'));
+        const idxAutor = headers.findIndex(h => h.toLowerCase().includes('autor'));
+        const idxEstado = headers.findIndex(h => h.toLowerCase().includes('estado'));
+        const idxIdioma = headers.findIndex(h => h.toLowerCase().includes('idioma'));
+        const idxUrl = headers.findIndex(h => h.toLowerCase().includes('url foto'));
+
+        const jsonArray = [];
+
+        for (let i = 1; i < dataArray.length; i++) {
+            const row = dataArray[i];
+            
+            // Ignorar filas completamente vacías
+            if (row.join('').trim() === '') continue;
+
+            const nombre = idxNombre !== -1 && row[idxNombre] ? row[idxNombre].trim() : "";
+            const autor = idxAutor !== -1 && row[idxAutor] ? row[idxAutor].trim() : "";
+            const estado = idxEstado !== -1 && row[idxEstado] ? row[idxEstado].trim() : "";
+            const idioma = idxIdioma !== -1 && row[idxIdioma] ? row[idxIdioma].trim() : "";
+            const urlFoto = idxUrl !== -1 && row[idxUrl] ? row[idxUrl].trim() : "";
+
+            jsonArray.push({
+                "Nombre": nombre,
+                "Autor": autor,
+                "Calidad": parseCalidad(estado),
+                "Idioma": idioma,
+                "URL_Foto": urlFoto
+            });
+        }
+
+        // Mostrar en el textarea
+        currentJsonData = jsonArray;
+        const jsonString = JSON.stringify(jsonArray, null, 4);
+        jsonOutput.value = jsonString;
+
+        // Habilitar botones
+        btnCopy.disabled = false;
+        btnDownload.disabled = false;
+        
+        showStatus("¡Transformación exitosa! Encontrados " + jsonArray.length + " registros.", "#28a745");
+    }
+
+    function showStatus(msg, color) {
+        statusMessage.textContent = msg;
+        statusMessage.style.color = color;
+        setTimeout(() => { statusMessage.textContent = ""; }, 5000);
+    }
+
+    function copyToClipboard() {
+        jsonOutput.select();
+        document.execCommand('copy');
+        showStatus("¡JSON copiado al portapapeles!", "#28a745");
+    }
+
+    function downloadJSON() {
+        if (!currentJsonData) return;
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentJsonData, null, 4));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "catalogo_transformado.json");
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        showStatus("¡Archivo .json descargado!", "#28a745");
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock de Libros - Daumian</title>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Stock de Libros</h1>
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar por nombre...">
+        <div class="filters">
+            <select id="autorFilter"><option value="">Todos los Autores</option></select>
+            <select id="idiomaFilter"><option value="">Todos los Idiomas</option></select>
+        </div>
+    </div>
+
+    <div class="grid" id="bookGrid"></div>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
