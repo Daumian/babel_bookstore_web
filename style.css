@@ -1,3 +1,6 @@
+/* =========================================
+   ESTILOS GENERALES
+   ========================================= */
 body { 
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
     background-color: #f4f7f6; 
@@ -11,117 +14,163 @@ body {
     margin: 0 auto; 
 }
 
-/* --- Buscador y Filtros --- */
+/* =========================================
+   ENCABEZADO Y BÚSQUEDA
+   ========================================= */
 .header { 
     text-align: center; 
     margin-bottom: 40px; 
 }
 
-.search-bar { 
-    width: 100%; 
-    max-width: 500px; 
-    padding: 12px 20px; 
-    font-size: 16px; 
-    border-radius: 25px; 
-    border: 1px solid #ccc; 
-    margin-bottom: 15px;
+.header h1 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #2c3e50;
+    margin-bottom: 25px;
+}
+
+.search-bar {
+    width: 100%;
+    max-width: 500px;
+    padding: 14px 22px;
+    font-size: 15px;
+    border-radius: 30px;
+    border: 1px solid #e2e8f0;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     outline: none;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
 }
 
-.filters { 
-    display: flex; 
-    justify-content: center; 
-    gap: 10px; 
-    flex-wrap: wrap; 
+.search-bar:focus {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
-select { 
-    padding: 8px 12px; 
-    border-radius: 5px; 
-    border: 1px solid #ddd; 
-    cursor: pointer; 
+/* =========================================
+   SISTEMA DE FILTROS (CHIPS)
+   ========================================= */
+.filters {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
 }
 
-/* --- Cuadrícula --- */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #f8fafc;
+    padding: 10px 35px 10px 18px;
+    border-radius: 25px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    transition: all 0.2s ease;
+}
+
+select:hover, select:focus {
+    border-color: #94a3b8;
+    background-color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+/* =========================================
+   CUADRÍCULA (GRID)
+   ========================================= */
 .grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
     gap: 20px; 
 }
 
-/* --- Tarjeta de Libro --- */
-.card { 
-    background: white; 
-    padding: 10px; 
-    border-radius: 10px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
-    text-align: center; 
-    position: relative; 
-    overflow: hidden; 
+/* =========================================
+   TARJETAS DE LIBROS
+   ========================================= */
+.card {
+    background: #ffffff;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
 }
 
-.card img { 
-    width: 100%; 
-    height: 280px; 
-    object-fit: cover; 
-    border-radius: 5px; 
-    transition: filter 0.3s ease;
+.card img {
+    width: 100%;
+    height: 230px;
+    object-fit: contain; 
+    background-color: #fafafa; 
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
-.card h3 { 
-    font-size: 16px; 
-    margin: 10px 0 5px; 
-    min-height: 40px; 
+.card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 8px 0 4px 0;
+    line-height: 1.3;
 }
 
-/* Estilo del Autor */
 .card .autor {
-    font-size: 13px;
-    color: #888;
-    margin: -5px 0 10px 0;
-    font-style: italic;
+    font-size: 14px;
+    color: #64748b;
+    font-style: normal; 
+    font-weight: 500;
+    margin-bottom: 15px;
 }
 
 .flag { 
     font-size: 20px; 
 }
 
-/* --- BOTÓN WHATSAPP --- */
+/* =========================================
+   BOTÓN "CONSULTAR"
+   ========================================= */
 .btn-consultar {
-    position: absolute;
-    top: 40%; 
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #25D366; 
+    background-color: #10b981; 
     color: white;
-    padding: 10px 20px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: bold;
+    border-radius: 25px;
+    padding: 12px 0;
     font-size: 14px;
-    opacity: 0; 
-    visibility: hidden;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    width: 100%;
+    display: block;
+    margin-top: auto; 
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    z-index: 10;
-}
-
-.card:hover img {
-    filter: blur(2px) brightness(0.8); 
-}
-
-.card:hover .btn-consultar {
-    opacity: 1; 
-    visibility: visible;
-    top: 45%; 
+    text-decoration: none;
+    box-sizing: border-box;
 }
 
 .btn-consultar:hover {
-    background-color: #128C7E; 
-    transform: translate(-50%, -50%) scale(1.1);
+    background-color: #059669;
 }
 
-/* --- Mensaje sin resultados --- */
+.btn-consultar:active {
+    transform: scale(0.98);
+    background-color: #047857;
+}
+
+/* =========================================
+   ESTADOS ESPECIALES (Sin foto / Sin resultados)
+   ========================================= */
 .no-results { 
     grid-column: 1 / -1; 
     padding: 50px; 
@@ -129,7 +178,6 @@ select {
     text-align: center; 
 }
 
-/* --- Diseño compacto para libros sin portada --- */
 .card.no-photo {
     padding: 15px 10px;
     display: flex;
@@ -138,54 +186,50 @@ select {
 }
 
 .card.no-photo img {
-    width: 80px; /* Imagen mucho más pequeña */
+    width: 80px; 
     height: 80px; 
-    margin: 0 auto 10px auto; /* Centrado */
+    margin: 0 auto 10px auto; 
     border-radius: 8px;
-    object-fit: contain; /* Para que el icono no se deforme */
+    object-fit: contain; 
     box-shadow: none;
+    background-color: transparent;
 }
 
-/* Opcional: Centrar mejor el título cuando no hay foto grande */
 .card.no-photo h3 {
     min-height: auto;
     margin-top: 5px;
 }
 
-/* --- AJUSTES PARA CELULARES --- */
+/* =========================================
+   AJUSTES PARA CELULARES (RESPONSIVE)
+   ========================================= */
 @media (max-width: 768px) {
-    /* 1. Adaptar el Grid: Achicamos el mínimo a 150px para que entren 2 libros por fila (opcional pero recomendado) */
     .grid { 
+        /* Achicamos el mínimo para que entren 2 libros por fila en pantallas estándar de celular */
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
         gap: 15px; 
     }
 
-    /* 2. Reducir un poco la altura de la imagen para que no ocupe toda la pantalla */
+    .card {
+        padding: 12px;
+    }
+
     .card img {
-        height: 200px;
+        height: 180px; 
+        margin-bottom: 8px;
     }
 
-    /* 3. Hacer el botón de WhatsApp siempre visible y colocarlo debajo del texto */
+    .card h3 {
+        font-size: 15px;
+    }
+
+    .card .autor {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
     .btn-consultar {
-        position: relative; /* Le sacamos el absolute para que no tape la portada */
-        top: 0;
-        left: 0;
-        transform: none;
-        opacity: 1; /* Siempre visible */
-        visibility: visible;
-        display: block;
-        width: 100%; 
-        margin-top: 15px;
-        box-sizing: border-box;
-    }
-
-    /* 4. Desactivar el hover y el difuminado en la imagen al tocar la tarjeta */
-    .card:hover img {
-        filter: none; 
-    }
-    
-    .card:hover .btn-consultar {
-        top: 0; /* Evita que el botón salte al hacer tap */
-        transform: none;
+        padding: 10px 0;
+        font-size: 12px;
     }
 }
