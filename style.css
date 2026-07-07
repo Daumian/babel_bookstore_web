@@ -151,3 +151,41 @@ select {
     min-height: auto;
     margin-top: 5px;
 }
+
+/* --- AJUSTES PARA CELULARES --- */
+@media (max-width: 768px) {
+    /* 1. Adaptar el Grid: Achicamos el mínimo a 150px para que entren 2 libros por fila (opcional pero recomendado) */
+    .grid { 
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
+        gap: 15px; 
+    }
+
+    /* 2. Reducir un poco la altura de la imagen para que no ocupe toda la pantalla */
+    .card img {
+        height: 200px;
+    }
+
+    /* 3. Hacer el botón de WhatsApp siempre visible y colocarlo debajo del texto */
+    .btn-consultar {
+        position: relative; /* Le sacamos el absolute para que no tape la portada */
+        top: 0;
+        left: 0;
+        transform: none;
+        opacity: 1; /* Siempre visible */
+        visibility: visible;
+        display: block;
+        width: 100%; 
+        margin-top: 15px;
+        box-sizing: border-box;
+    }
+
+    /* 4. Desactivar el hover y el difuminado en la imagen al tocar la tarjeta */
+    .card:hover img {
+        filter: none; 
+    }
+    
+    .card:hover .btn-consultar {
+        top: 0; /* Evita que el botón salte al hacer tap */
+        transform: none;
+    }
+}
