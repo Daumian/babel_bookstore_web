@@ -109,3 +109,9 @@ const procesarFiltrado = debounce(() => filtrar());
 document.getElementById('searchInput').addEventListener('input', procesarFiltrado);
 document.getElementById('autorFilter').addEventListener('change', filtrar);
 document.getElementById('idiomaFilter').addEventListener('change', filtrar);
+document.getElementById('btnReset').addEventListener('click', () => {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('autorFilter').value = '';
+    document.getElementById('idiomaFilter').value = '';
+    filtrar(); 
+});
