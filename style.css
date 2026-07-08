@@ -26,7 +26,7 @@ body {
     font-weight: 700;
     letter-spacing: -0.5px;
     color: #2c3e50;
-    margin-bottom: 25px;
+    margin-bottom: 8px; /* Reducimos este margen (antes era 25px) */
 }
 
 .search-bar {
@@ -398,3 +398,4 @@ select:hover, select:focus {
     cursor: pointer;
     flex: 2; /* Ocupa más espacio que el botón limpiar */
 }
+
