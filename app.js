@@ -8,7 +8,6 @@ const btnCloseFilters = document.getElementById('btnCloseFilters');
 const btnApplyFilters = document.getElementById('btnApplyFilters');
 const btnResetFilters = document.getElementById('btnResetFilters');
 
-
 const banderas = {
     "Español": "img/ES.png",
     "Ingles": "img/EN.png",
@@ -113,47 +112,38 @@ function debounce(func, timeout = 300) {
 
 const procesarFiltrado = debounce(() => filtrar());
 
-// Event Listeners
+// ==========================================
+// EVENT LISTENERS Y LÓGICA DEL MODAL
+// ==========================================
+
+// Mantener el buscador en tiempo real (solo 1 vez)
 document.getElementById('searchInput').addEventListener('input', procesarFiltrado);
-document.getElementById('autorFilter').addEventListener('change', filtrar);
-document.getElementById('idiomaFilter').addEventListener('change', filtrar);
-document.getElementById('btnReset').addEventListener('click', () => {
-    document.getElementById('searchInput').value = '';
-    document.getElementById('autorFilter').value = '';
-    document.getElementById('idiomaFilter').value = '';
-    filtrar(); 
-});
-
-
 
 // Abrir modal
 btnOpenFilters.addEventListener('click', () => {
     modal.classList.add('active');
 });
 
-// Cerrar modal
+// Cerrar modal (con el botón X o tocando el fondo oscuro)
 const cerrarModal = () => {
     modal.classList.remove('active');
 };
 btnCloseFilters.addEventListener('click', cerrarModal);
 
-// Cerrar modal tocando el fondo oscuro
 modal.addEventListener('click', (e) => {
     if (e.target === modal) cerrarModal();
 });
 
-// Aplicar filtros (Botón "Ver resultados")
+// Aplicar filtros (Botón azul "Ver resultados")
 btnApplyFilters.addEventListener('click', () => {
-    filtrar(); // Ejecuta el filtro
-    cerrarModal(); // Cierra el modal para ver los libros
+    filtrar(); // Ejecuta el filtro con lo seleccionado
+    cerrarModal(); // Cierra el modal para ver el catálogo
 });
 
 // Limpiar filtros (Botón "Limpiar filtros")
 btnResetFilters.addEventListener('click', () => {
     document.getElementById('autorFilter').value = '';
     document.getElementById('idiomaFilter').value = '';
-    // No cerramos el modal ni filtramos aún, le dejamos elegir "Ver resultados"
+    // Solo limpiamos los selects, no cerramos el modal ni filtramos 
+    // hasta que el usuario decida tocar "Ver resultados"
 });
-
-// Mantener el buscador en tiempo real
-document.getElementById('searchInput').addEventListener('input', procesarFiltrado);
