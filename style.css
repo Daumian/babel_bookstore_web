@@ -263,3 +263,138 @@ select:hover, select:focus {
     color: #1e293b;
     transform: rotate(-45deg); /* Pequeña animación al tocar */
 }
+
+/* --- BUSCADOR Y BOTÓN DE FILTRO --- */
+.search-group {
+    display: flex;
+    gap: 10px;
+    max-width: 500px;
+    margin: 0 auto 20px;
+}
+
+.search-group .search-bar {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.btn-open-filters {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px; /* Más cuadrado estilo app */
+    width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s;
+}
+
+.btn-open-filters:active {
+    background-color: #f1f5f9;
+}
+
+/* --- MODAL (BOTTOM SHEET) --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: flex-end; /* Lo pega abajo en celulares */
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 20px 20px 0 0; /* Bordes redondos solo arriba */
+    transform: translateY(100%); /* Oculto abajo de la pantalla */
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0); /* Sube la pestaña */
+}
+
+/* Cabecera del modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: #1e293b;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* Cuerpo del modal (donde van los selects) */
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+/* Pie del modal (Botones ML) */
+.modal-footer {
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-limpiar {
+    background: transparent;
+    border: none;
+    color: #3b82f6; /* Azul estilo MercadoLibre */
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    flex: 1;
+}
+
+.btn-aplicar {
+    background: #3b82f6; /* Azul estilo MercadoLibre */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    flex: 2; /* Ocupa más espacio que el botón limpiar */
+}

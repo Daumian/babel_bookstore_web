@@ -1,6 +1,14 @@
 let libros = [];
 const WHATSAPP_NUM = "5492612428328"; 
 
+// --- LÓGICA DEL MODAL DE FILTROS ---
+const modal = document.getElementById('filterModal');
+const btnOpenFilters = document.getElementById('btnOpenFilters');
+const btnCloseFilters = document.getElementById('btnCloseFilters');
+const btnApplyFilters = document.getElementById('btnApplyFilters');
+const btnResetFilters = document.getElementById('btnResetFilters');
+
+
 const banderas = {
     "Español": "img/ES.png",
     "Ingles": "img/EN.png",
@@ -115,3 +123,37 @@ document.getElementById('btnReset').addEventListener('click', () => {
     document.getElementById('idiomaFilter').value = '';
     filtrar(); 
 });
+
+
+
+// Abrir modal
+btnOpenFilters.addEventListener('click', () => {
+    modal.classList.add('active');
+});
+
+// Cerrar modal
+const cerrarModal = () => {
+    modal.classList.remove('active');
+};
+btnCloseFilters.addEventListener('click', cerrarModal);
+
+// Cerrar modal tocando el fondo oscuro
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) cerrarModal();
+});
+
+// Aplicar filtros (Botón "Ver resultados")
+btnApplyFilters.addEventListener('click', () => {
+    filtrar(); // Ejecuta el filtro
+    cerrarModal(); // Cierra el modal para ver los libros
+});
+
+// Limpiar filtros (Botón "Limpiar filtros")
+btnResetFilters.addEventListener('click', () => {
+    document.getElementById('autorFilter').value = '';
+    document.getElementById('idiomaFilter').value = '';
+    // No cerramos el modal ni filtramos aún, le dejamos elegir "Ver resultados"
+});
+
+// Mantener el buscador en tiempo real
+document.getElementById('searchInput').addEventListener('input', procesarFiltrado);

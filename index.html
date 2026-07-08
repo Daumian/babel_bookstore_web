@@ -12,14 +12,38 @@
 <div class="container">
     <div class="header">
         <h1>Stock de Libros</h1>
-        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar por nombre...">
-        <div class="filters">
-            <select id="autorFilter"><option value="">Todos los Autores</option></select>
-            <select id="idiomaFilter"><option value="">Todos los Idiomas</option></select>
-            <button id="btnReset" class="btn-reset" title="Volver a todos">↺</button>
+        <div class="search-group">
+            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar por nombre...">
+            <button id="btnOpenFilters" class="btn-open-filters">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            </button>
         </div>
     </div>
 
+    <div id="filterModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Filtros</h2>
+                <button id="btnCloseFilters" class="btn-close">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="filter-group">
+                    <label>Autor</label>
+                    <select id="autorFilter"><option value="">Cualquier autor</option></select>
+                </div>
+                <div class="filter-group">
+                    <label>Idioma</label>
+                    <select id="idiomaFilter"><option value="">Cualquier idioma</option></select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="btnResetFilters" class="btn-limpiar">Limpiar filtros</button>
+                <button id="btnApplyFilters" class="btn-aplicar">Ver resultados</button>
+            </div>
+        </div>
+    </div>
     <div class="grid" id="bookGrid"></div>
 </div>
 
