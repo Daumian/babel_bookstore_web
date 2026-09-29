@@ -33,7 +33,7 @@ fetch('libros.json')
     })
     .then(data => {
         libros = data;
-        poblarFiltros();
+        actualizarOpciones();
         mostrarLibros(libros);
     })
     .catch(error => {
@@ -65,22 +65,50 @@ function banderasDe(idioma) {
         .filter(Boolean);
 }
 
-function poblarFiltros() {
-    const autores = [...new Set(libros.map(l => l.Autor))].filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, 'es'));
-    const idiomas = [...new Set(libros.map(l => l.Idioma))].filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, 'es'));
+// Filtros que se acomodan entre sí: cada selector solo ofrece opciones que
+// tienen al menos un libro con lo que ya está elegido (así nunca da cero).
+const selAutor = document.getElementById('autorFilter');
+const selIdioma = document.getElementById('idiomaFilter');
 
-    const llenar = (select, valores) => {
-        valores.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v;
-            opt.textContent = v;
-            select.appendChild(opt);
-        });
-    };
-    llenar(document.getElementById('autorFilter'), autores);
-    llenar(document.getElementById('idiomaFilter'), idiomas);
+function textoBusqueda() {
+    return sinTildes(document.getElementById('searchInput').value.trim());
+}
+
+function coincideTexto(l, txt) {
+    return txt === "" || sinTildes(l.Nombre).includes(txt) || sinTildes(l.Autor).includes(txt);
+}
+
+function llenarOpciones(select, campo, textoVacio, lista) {
+    const actual = select.value;
+    const cuentas = new Map();
+    lista.forEach(l => {
+        if (l[campo]) cuentas.set(l[campo], (cuentas.get(l[campo]) || 0) + 1);
+    });
+    const valores = [...cuentas.keys()].sort((a, b) => a.localeCompare(b, 'es'));
+
+    select.innerHTML = '';
+    const vacia = document.createElement('option');
+    vacia.value = '';
+    vacia.textContent = textoVacio;
+    select.appendChild(vacia);
+    valores.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = `${v} (${cuentas.get(v)})`;
+        select.appendChild(opt);
+    });
+    select.value = cuentas.has(actual) ? actual : '';
+}
+
+function actualizarOpciones() {
+    const txt = textoBusqueda();
+    const aut = selAutor.value;
+    const idi = selIdioma.value;
+    // Autores: según texto e idioma elegido. Idiomas: según texto y autor elegido.
+    llenarOpciones(selAutor, 'Autor', 'Cualquier autor',
+        libros.filter(l => coincideTexto(l, txt) && (idi === "" || l.Idioma === idi)));
+    llenarOpciones(selIdioma, 'Idioma', 'Cualquier idioma',
+        libros.filter(l => coincideTexto(l, txt) && (aut === "" || l.Autor === aut)));
 }
 
 function crearTarjeta(libro) {
@@ -169,16 +197,14 @@ function mostrarLibros(lista) {
 }
 
 function filtrar() {
-    const txt = sinTildes(document.getElementById('searchInput').value.trim());
-    const aut = document.getElementById('autorFilter').value;
-    const idi = document.getElementById('idiomaFilter').value;
+    const txt = textoBusqueda();
+    const aut = selAutor.value;
+    const idi = selIdioma.value;
 
     filterBadge.hidden = !(aut || idi);
 
     const filtrados = libros.filter(l => {
-        const textoMatch = txt === "" ||
-            sinTildes(l.Nombre).includes(txt) ||
-            sinTildes(l.Autor).includes(txt);
+        const textoMatch = coincideTexto(l, txt);
         const autorMatch = aut === "" || l.Autor === aut;
         const idiomaMatch = idi === "" || l.Idioma === idi;
         return textoMatch && autorMatch && idiomaMatch;
@@ -202,7 +228,12 @@ document.getElementById('searchInput').addEventListener('input', debounce(filtra
 
 const cerrarModal = () => modal.classList.remove('active');
 
-btnOpenFilters.addEventListener('click', () => modal.classList.add('active'));
+btnOpenFilters.addEventListener('click', () => {
+    actualizarOpciones();
+    modal.classList.add('active');
+});
+selAutor.addEventListener('change', actualizarOpciones);
+selIdioma.addEventListener('change', actualizarOpciones);
 btnCloseFilters.addEventListener('click', cerrarModal);
 modal.addEventListener('click', (e) => {
     if (e.target === modal) cerrarModal();
@@ -217,8 +248,9 @@ btnApplyFilters.addEventListener('click', () => {
 });
 
 btnResetFilters.addEventListener('click', () => {
-    document.getElementById('autorFilter').value = '';
-    document.getElementById('idiomaFilter').value = '';
+    selAutor.value = '';
+    selIdioma.value = '';
+    actualizarOpciones();
     filtrar();
     cerrarModal();
 });
