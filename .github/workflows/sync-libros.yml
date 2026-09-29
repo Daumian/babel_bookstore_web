@@ -1,0 +1,38 @@
+name: Sincronizar libros desde el Sheet
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # cada 6 horas
+  workflow_dispatch:          # botón manual
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-libros
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generar libros.json desde el CSV
+        run: python3 tools/sync_sheet.py
+
+      - name: Commit solo si cambió
+        run: |
+          if git diff --quiet -- libros.json; then
+            echo "libros.json sin cambios, no hay commit."
+            exit 0
+          fi
+          git config user.name "babel-sync-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add libros.json
+          git commit -m "Sync libros.json desde Google Sheet"
+          git push
