@@ -261,7 +261,7 @@ function pintarBotonInteres(btn, activo, nombre) {
     btn.classList.toggle('activo', activo);
     btn.setAttribute('aria-pressed', activo ? 'true' : 'false');
     btn.setAttribute('aria-label', (activo ? 'Quitar de mis consultas: ' : 'Me interesa: ') + nombre);
-    btn.textContent = activo ? '❤️ Me interesa ✓' : '🤍 Me interesa';
+    btn.textContent = activo ? '♥ Me interesa ✓' : '♡ Me interesa';
 }
 
 function mostrarAviso(texto) {
