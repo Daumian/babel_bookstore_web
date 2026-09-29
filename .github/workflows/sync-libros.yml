@@ -2,7 +2,7 @@ name: Sincronizar libros desde el Sheet
 
 on:
   schedule:
-    - cron: "0 */6 * * *"   # cada 6 horas
+    - cron: "0 9 * * *"     # una vez por día, 09:00 UTC = 06:00 en Argentina
   workflow_dispatch:          # botón manual
 
 permissions:
