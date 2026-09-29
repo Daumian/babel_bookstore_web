@@ -1,154 +1,224 @@
 let libros = [];
-const WHATSAPP_NUM = "5492612428328"; 
+const WHATSAPP_NUM = "5492612428328";
 
-// --- LÓGICA DEL MODAL DE FILTROS ---
+// --- ELEMENTOS ---
 const modal = document.getElementById('filterModal');
 const btnOpenFilters = document.getElementById('btnOpenFilters');
 const btnCloseFilters = document.getElementById('btnCloseFilters');
 const btnApplyFilters = document.getElementById('btnApplyFilters');
 const btnResetFilters = document.getElementById('btnResetFilters');
+const filterBadge = document.getElementById('filterBadge');
+const resultCount = document.getElementById('resultCount');
+const grid = document.getElementById('bookGrid');
 
+// Banderas: la clave es el idioma sin tildes y en minúscula (ver sinTildes)
 const banderas = {
-    "Español": "img/ES.png",
-    "Ingles": "img/EN.png",
-    "Frances": "img/FR.png",
-    "Portuges": "img/BR.png",
-    "Italiano": "img/IT.png", 
-    "Aleman": "img/AL.png",
-    "Hebreo": "img/HE.png",
-    // Idiomas normalizados por tools/sync_sheet.py (con tilde)
-    "Inglés": "img/EN.png",
-    "Francés": "img/FR.png",
-    "Portugués": "img/BR.png",
-    "Alemán": "img/AL.png"
+    "espanol": "img/ES.png",
+    "ingles": "img/EN.png",
+    "frances": "img/FR.png",
+    "portugues": "img/BR.png",
+    "portuges": "img/BR.png",
+    "italiano": "img/IT.png",
+    "aleman": "img/AL.png",
+    "hebreo": "img/HE.png"
 };
 
-// Icono SVG por defecto para libros sin foto
-const imgPorDefecto = "data:image/svg+xml;charset=UTF-8,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='%23f9f9f9' rx='10'/%3E%3Cpath d='M30 20 h40 v60 h-40 z' fill='none' stroke='%23e0e0e0' stroke-width='2'/%3E%3Cpath d='M38 35 h24 M38 50 h24 M38 65 h12' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E";
+// Imagen de respaldo (logo de la marca) cuando falta la tapa o falla la URL
+const imgRespaldo = "img/logo.jpg";
 
 fetch('libros.json')
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+    })
     .then(data => {
         libros = data;
         poblarFiltros();
         mostrarLibros(libros);
     })
-    .catch(error => console.error("Error al cargar los libros:", error));
+    .catch(error => {
+        console.error("Error al cargar los libros:", error);
+        grid.innerHTML = '<div class="no-results">No pudimos cargar los libros 😕 Probá de nuevo en un rato o escribinos por Instagram.</div>';
+    });
+
+// --- UTILIDADES ---
+function sinTildes(texto) {
+    return String(texto || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+// 5000 -> "$5.000"
+function formatearPrecio(n) {
+    return "$" + String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+function crear(tag, clase, texto) {
+    const el = document.createElement(tag);
+    if (clase) el.className = clase;
+    if (texto !== undefined) el.textContent = texto;
+    return el;
+}
+
+// "Inglés, Español" -> ["img/EN.png", "img/ES.png"]
+function banderasDe(idioma) {
+    return String(idioma || "").split(",")
+        .map(p => banderas[sinTildes(p.trim())])
+        .filter(Boolean);
+}
 
 function poblarFiltros() {
-    const autores = [...new Set(libros.map(l => l.Autor))].filter(Boolean).sort();
-    const idiomas = [...new Set(libros.map(l => l.Idioma))].filter(Boolean).sort();
+    const autores = [...new Set(libros.map(l => l.Autor))].filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'es'));
+    const idiomas = [...new Set(libros.map(l => l.Idioma))].filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'es'));
 
-    const fAutor = document.getElementById('autorFilter');
-    const fIdioma = document.getElementById('idiomaFilter');
+    const llenar = (select, valores) => {
+        valores.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v;
+            opt.textContent = v;
+            select.appendChild(opt);
+        });
+    };
+    llenar(document.getElementById('autorFilter'), autores);
+    llenar(document.getElementById('idiomaFilter'), idiomas);
+}
 
-    // Optimización: Construir el HTML completo y asignarlo una sola vez al DOM
-    fAutor.innerHTML += autores.map(a => `<option value="${a}">${a}</option>`).join('');
-    fIdioma.innerHTML += idiomas.map(i => `<option value="${i}">${i}</option>`).join('');
+function crearTarjeta(libro) {
+    const nombre = libro.Nombre || "";
+    const tieneFoto = !!(libro.URL_Foto && libro.URL_Foto.trim());
+
+    const card = crear('article', 'card');
+
+    // Tapa (tamaño fijo por CSS) con respaldo de marca
+    const cover = crear('div', tieneFoto ? 'cover' : 'cover no-photo');
+    const img = document.createElement('img');
+    img.width = 200;
+    img.height = 300;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.alt = tieneFoto ? `Tapa de ${nombre}` : "";
+    img.src = tieneFoto ? libro.URL_Foto : imgRespaldo;
+    img.addEventListener('error', () => {
+        img.onerror = null;
+        img.src = imgRespaldo;
+        img.alt = "";
+        cover.classList.add('no-photo');
+    }, { once: true });
+    cover.appendChild(img);
+    card.appendChild(cover);
+
+    const body = crear('div', 'card-body');
+    body.appendChild(crear('h3', '', nombre));
+    body.appendChild(crear('p', 'autor', libro.Autor || 'Autor desconocido'));
+
+    // Idioma (con bandera) y estado
+    const meta = crear('div', 'meta');
+    if (libro.Idioma) {
+        const idioma = crear('span', 'idioma');
+        banderasDe(libro.Idioma).forEach(src => {
+            const flag = document.createElement('img');
+            flag.src = src;
+            flag.alt = "";
+            flag.className = 'flag';
+            flag.width = 16;
+            flag.height = 16;
+            idioma.appendChild(flag);
+        });
+        idioma.appendChild(document.createTextNode(libro.Idioma));
+        meta.appendChild(idioma);
+    }
+    if (libro.Estado) {
+        const estado = crear('span', 'estado estado-' + sinTildes(libro.Estado).replace(/\s+/g, '-'));
+        estado.appendChild(crear('i', 'dot'));
+        estado.appendChild(document.createTextNode(libro.Estado));
+        meta.appendChild(estado);
+    }
+    if (meta.children.length) body.appendChild(meta);
+
+    // Precio (vacío -> "Consultar")
+    const tienePrecio = typeof libro.Precio === 'number' && libro.Precio > 0;
+    body.appendChild(tienePrecio
+        ? crear('p', 'precio', formatearPrecio(libro.Precio))
+        : crear('p', 'precio consultar', 'Consultar'));
+    card.appendChild(body);
+
+    const acciones = crear('div', 'card-actions');
+    const mensaje = encodeURIComponent(`Hola! Me interesa consultar por el libro: ${nombre}`);
+    const btn = crear('a', 'btn-consultar', 'Consultar');
+    btn.href = `https://wa.me/${WHATSAPP_NUM}?text=${mensaje}`;
+    btn.target = '_blank';
+    btn.rel = 'noopener';
+    acciones.appendChild(btn);
+    card.appendChild(acciones);
+
+    return card;
 }
 
 function mostrarLibros(lista) {
-    const grid = document.getElementById('bookGrid');
     grid.innerHTML = '';
+    resultCount.textContent = lista.length === 1 ? '1 libro' : `${lista.length} libros`;
 
-    if(lista.length === 0) {
-        grid.innerHTML = '<div class="no-results">No se encontraron libros.</div>';
+    if (lista.length === 0) {
+        grid.innerHTML = '<div class="no-results">No encontramos libros con esa búsqueda 📚<br>Probá con otra palabra o limpiá los filtros.</div>';
         return;
     }
 
-    // Optimización: Usar DocumentFragment para evitar múltiples reflows del navegador
     const fragment = document.createDocumentFragment();
-
-    lista.forEach(libro => {
-        const rutaImagen = banderas[libro.Idioma] || ""; 
-        const htmlBandera = rutaImagen 
-            ? `<img src="${rutaImagen}" style="width: 25px; height: 25px; vertical-align: middle; margin-right: 8px; border-radius: 50%;">`
-            : "";
-
-        const mensaje = encodeURIComponent(`Hola! Me interesa consultar por el libro: ${libro.Nombre}`);
-        const urlWa = `https://wa.me/${WHATSAPP_NUM}?text=${mensaje}`;
-
-        const tieneFoto = libro.URL_Foto && libro.URL_Foto.trim() !== "";
-        const urlFotoInicial = tieneFoto ? libro.URL_Foto : imgPorDefecto;
-        const claseTarjeta = tieneFoto ? 'card' : 'card no-photo';
-
-        const card = document.createElement('div');
-        card.className = claseTarjeta;
-        card.innerHTML = `
-            <img src="${urlFotoInicial}" alt="${libro.Nombre}" loading="lazy" 
-                 onerror="this.onerror=null; this.src='${imgPorDefecto}'; this.parentElement.classList.add('no-photo');">
-            <h3>${libro.Nombre}</h3>
-            <p class="autor">${libro.Autor ? libro.Autor : 'Autor desconocido'}</p>
-            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                ${htmlBandera}
-                <span style="font-size: 14px; color: #555; font-weight: 500;">${libro.Idioma}</span>
-            </div>
-            <a href="${urlWa}" target="_blank" class="btn-consultar">CONSULTAR</a>
-        `;
-        
-        fragment.appendChild(card);
-    });
-
+    lista.forEach(libro => fragment.appendChild(crearTarjeta(libro)));
     grid.appendChild(fragment);
 }
 
 function filtrar() {
-    const txt = document.getElementById('searchInput').value.toLowerCase();
+    const txt = sinTildes(document.getElementById('searchInput').value.trim());
     const aut = document.getElementById('autorFilter').value;
     const idi = document.getElementById('idiomaFilter').value;
 
+    filterBadge.hidden = !(aut || idi);
+
     const filtrados = libros.filter(l => {
-        const nombreMatch = l.Nombre.toLowerCase().includes(txt);
+        const textoMatch = txt === "" ||
+            sinTildes(l.Nombre).includes(txt) ||
+            sinTildes(l.Autor).includes(txt);
         const autorMatch = aut === "" || l.Autor === aut;
         const idiomaMatch = idi === "" || l.Idioma === idi;
-        return nombreMatch && autorMatch && idiomaMatch;
+        return textoMatch && autorMatch && idiomaMatch;
     });
     mostrarLibros(filtrados);
 }
 
-// Optimización: Debounce para evitar filtrar en cada pulsación de tecla
-function debounce(func, timeout = 300) {
+// Debounce para no filtrar en cada pulsación de tecla
+function debounce(func, timeout = 250) {
     let timer;
     return (...args) => {
         clearTimeout(timer);
-        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        timer = setTimeout(() => func(...args), timeout);
     };
 }
 
-const procesarFiltrado = debounce(() => filtrar());
-
 // ==========================================
-// EVENT LISTENERS Y LÓGICA DEL MODAL
+// EVENTOS
 // ==========================================
+document.getElementById('searchInput').addEventListener('input', debounce(filtrar));
 
-// Mantener el buscador en tiempo real (solo 1 vez)
-document.getElementById('searchInput').addEventListener('input', procesarFiltrado);
+const cerrarModal = () => modal.classList.remove('active');
 
-// Abrir modal
-btnOpenFilters.addEventListener('click', () => {
-    modal.classList.add('active');
-});
-
-// Cerrar modal (con el botón X o tocando el fondo oscuro)
-const cerrarModal = () => {
-    modal.classList.remove('active');
-};
+btnOpenFilters.addEventListener('click', () => modal.classList.add('active'));
 btnCloseFilters.addEventListener('click', cerrarModal);
-
 modal.addEventListener('click', (e) => {
     if (e.target === modal) cerrarModal();
 });
-
-// Aplicar filtros (Botón azul "Ver resultados")
-btnApplyFilters.addEventListener('click', () => {
-    filtrar(); // Ejecuta el filtro con lo seleccionado
-    cerrarModal(); // Cierra el modal para ver el catálogo
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarModal();
 });
 
-// Limpiar filtros (Botón "Limpiar filtros")
+btnApplyFilters.addEventListener('click', () => {
+    filtrar();
+    cerrarModal();
+});
+
 btnResetFilters.addEventListener('click', () => {
     document.getElementById('autorFilter').value = '';
     document.getElementById('idiomaFilter').value = '';
-    // Solo limpiamos los selects, no cerramos el modal ni filtramos 
-    // hasta que el usuario decida tocar "Ver resultados"
+    filtrar();
+    cerrarModal();
 });

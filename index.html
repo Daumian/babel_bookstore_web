@@ -2,46 +2,90 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock de Libros - Daumian</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ebe9dd">
+
+    <title>Babel Bookstore · Libros en idiomas extranjeros · San Isidro</title>
+    <meta name="description" content="Libros usados en inglés, francés, alemán, italiano, portugués y hebreo. San Isidro, zona norte. Envíos a toda Argentina. Pedí por WhatsApp.">
+
+    <!-- Al compartir el link (WhatsApp, Instagram, etc.) -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_AR">
+    <meta property="og:site_name" content="Babel Bookstore">
+    <meta property="og:title" content="Babel Bookstore · Libros en idiomas extranjeros">
+    <meta property="og:description" content="Libros usados en inglés, francés, alemán, italiano, portugués y hebreo. Envíos a toda Argentina.">
+    <meta property="og:url" content="https://daumian.github.io/babel_bookstore_web/">
+    <meta property="og:image" content="https://daumian.github.io/babel_bookstore_web/img/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" href="img/logo.jpg">
+    <link rel="apple-touch-icon" href="img/logo.jpg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="header">
-        <h1>Stock de Libros</h1>
-        
-        <a href="https://www.instagram.com/babel.bookstore/" target="_blank" class="ig-link">
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <header class="header">
+        <div class="brand">
+            <img src="img/logo.jpg" alt="" class="brand-logo" width="52" height="52">
+            <div class="brand-text">
+                <h1>Babel Bookstore</h1>
+                <p class="tagline">Libros en idiomas extranjeros · San Isidro</p>
+            </div>
+        </div>
+        <a href="https://www.instagram.com/babel.bookstore/" target="_blank" rel="noopener" class="ig-link" aria-label="Instagram de Babel Bookstore">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
                 <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
-            @babel.bookstore
+            <span>@babel.bookstore</span>
         </a>
+    </header>
+
+    <div class="toolbar">
         <div class="search-group">
-            <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Buscar por nombre...">
-            <button id="btnOpenFilters" class="btn-open-filters">
-                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+            <input type="search" id="searchInput" class="search-bar" placeholder="Buscar por título o autor" aria-label="Buscar por título o autor" autocomplete="off">
+            <button id="btnOpenFilters" class="btn-open-filters" aria-label="Abrir filtros">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                <span id="filterBadge" class="filter-badge" hidden></span>
             </button>
         </div>
     </div>
 
-    <div id="filterModal" class="modal-overlay">
+    <main class="container">
+        <p id="resultCount" class="result-count" aria-live="polite"></p>
+        <div class="grid" id="bookGrid">
+            <div class="no-results">Cargando libros…</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <img src="img/logo.jpg" alt="" class="footer-logo" width="48" height="48">
+        <p class="footer-title">Babel Bookstore</p>
+        <p>📍 San Isidro, zona norte · 🚚 Envíos a toda Argentina</p>
+        <p class="footer-links">
+            <a href="https://www.instagram.com/babel.bookstore/" target="_blank" rel="noopener">Instagram</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://wa.me/5492612428328?text=Hola%20Babel!%20%F0%9F%93%9A" target="_blank" rel="noopener">WhatsApp</a>
+        </p>
+    </footer>
+
+    <div id="filterModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="filterTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Filtros</h2>
-                <button id="btnCloseFilters" class="btn-close">&times;</button>
+                <h2 id="filterTitle">Filtros</h2>
+                <button id="btnCloseFilters" class="btn-close" aria-label="Cerrar filtros">&times;</button>
             </div>
-            
+
             <div class="modal-body">
                 <div class="filter-group">
-                    <label>Autor</label>
+                    <label for="autorFilter">Autor</label>
                     <select id="autorFilter"><option value="">Cualquier autor</option></select>
                 </div>
                 <div class="filter-group">
-                    <label>Idioma</label>
+                    <label for="idiomaFilter">Idioma</label>
                     <select id="idiomaFilter"><option value="">Cualquier idioma</option></select>
                 </div>
             </div>
@@ -52,10 +96,7 @@
             </div>
         </div>
     </div>
-    <div class="grid" id="bookGrid"></div>
-</div>
 
-<script src="app.js"></script>
-
+    <script src="app.js"></script>
 </body>
 </html>
