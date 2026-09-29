@@ -15,7 +15,12 @@ const banderas = {
     "Portuges": "img/BR.png",
     "Italiano": "img/IT.png", 
     "Aleman": "img/AL.png",
-    "Hebreo": "img/HE.png"    
+    "Hebreo": "img/HE.png",
+    // Idiomas normalizados por tools/sync_sheet.py (con tilde)
+    "Inglés": "img/EN.png",
+    "Francés": "img/FR.png",
+    "Portugués": "img/BR.png",
+    "Alemán": "img/AL.png"
 };
 
 // Icono SVG por defecto para libros sin foto
