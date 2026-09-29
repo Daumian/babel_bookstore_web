@@ -33,8 +33,10 @@ fetch('libros.json')
     })
     .then(data => {
         libros = data;
-        poblarFiltros();
+        actualizarOpciones();
+        depurarLista();
         mostrarLibros(libros);
+        actualizarCarrito();
     })
     .catch(error => {
         console.error("Error al cargar los libros:", error);
@@ -65,22 +67,50 @@ function banderasDe(idioma) {
         .filter(Boolean);
 }
 
-function poblarFiltros() {
-    const autores = [...new Set(libros.map(l => l.Autor))].filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, 'es'));
-    const idiomas = [...new Set(libros.map(l => l.Idioma))].filter(Boolean)
-        .sort((a, b) => a.localeCompare(b, 'es'));
+// Filtros que se acomodan entre sí: cada selector solo ofrece opciones que
+// tienen al menos un libro con lo que ya está elegido (así nunca da cero).
+const selAutor = document.getElementById('autorFilter');
+const selIdioma = document.getElementById('idiomaFilter');
 
-    const llenar = (select, valores) => {
-        valores.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v;
-            opt.textContent = v;
-            select.appendChild(opt);
-        });
-    };
-    llenar(document.getElementById('autorFilter'), autores);
-    llenar(document.getElementById('idiomaFilter'), idiomas);
+function textoBusqueda() {
+    return sinTildes(document.getElementById('searchInput').value.trim());
+}
+
+function coincideTexto(l, txt) {
+    return txt === "" || sinTildes(l.Nombre).includes(txt) || sinTildes(l.Autor).includes(txt);
+}
+
+function llenarOpciones(select, campo, textoVacio, lista) {
+    const actual = select.value;
+    const cuentas = new Map();
+    lista.forEach(l => {
+        if (l[campo]) cuentas.set(l[campo], (cuentas.get(l[campo]) || 0) + 1);
+    });
+    const valores = [...cuentas.keys()].sort((a, b) => a.localeCompare(b, 'es'));
+
+    select.innerHTML = '';
+    const vacia = document.createElement('option');
+    vacia.value = '';
+    vacia.textContent = textoVacio;
+    select.appendChild(vacia);
+    valores.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = `${v} (${cuentas.get(v)})`;
+        select.appendChild(opt);
+    });
+    select.value = cuentas.has(actual) ? actual : '';
+}
+
+function actualizarOpciones() {
+    const txt = textoBusqueda();
+    const aut = selAutor.value;
+    const idi = selIdioma.value;
+    // Autores: según texto e idioma elegido. Idiomas: según texto y autor elegido.
+    llenarOpciones(selAutor, 'Autor', 'Cualquier autor',
+        libros.filter(l => coincideTexto(l, txt) && (idi === "" || l.Idioma === idi)));
+    llenarOpciones(selIdioma, 'Idioma', 'Cualquier idioma',
+        libros.filter(l => coincideTexto(l, txt) && (aut === "" || l.Autor === aut)));
 }
 
 function crearTarjeta(libro) {
@@ -143,11 +173,10 @@ function crearTarjeta(libro) {
     card.appendChild(body);
 
     const acciones = crear('div', 'card-actions');
-    const mensaje = encodeURIComponent(`Hola! Me interesa consultar por el libro: ${nombre}`);
-    const btn = crear('a', 'btn-consultar', 'Consultar');
-    btn.href = `https://wa.me/${WHATSAPP_NUM}?text=${mensaje}`;
-    btn.target = '_blank';
-    btn.rel = 'noopener';
+    const btn = crear('button', 'btn-interes');
+    btn.type = 'button';
+    btn.dataset.id = libro.ID;
+    pintarBotonInteres(btn, enLista(libro.ID), nombre);
     acciones.appendChild(btn);
     card.appendChild(acciones);
 
@@ -169,16 +198,14 @@ function mostrarLibros(lista) {
 }
 
 function filtrar() {
-    const txt = sinTildes(document.getElementById('searchInput').value.trim());
-    const aut = document.getElementById('autorFilter').value;
-    const idi = document.getElementById('idiomaFilter').value;
+    const txt = textoBusqueda();
+    const aut = selAutor.value;
+    const idi = selIdioma.value;
 
     filterBadge.hidden = !(aut || idi);
 
     const filtrados = libros.filter(l => {
-        const textoMatch = txt === "" ||
-            sinTildes(l.Nombre).includes(txt) ||
-            sinTildes(l.Autor).includes(txt);
+        const textoMatch = coincideTexto(l, txt);
         const autorMatch = aut === "" || l.Autor === aut;
         const idiomaMatch = idi === "" || l.Idioma === idi;
         return textoMatch && autorMatch && idiomaMatch;
@@ -196,19 +223,175 @@ function debounce(func, timeout = 250) {
 }
 
 // ==========================================
+// MIS CONSULTAS (carrito)
+// ==========================================
+const LISTA_KEY = 'babel_consultas';
+let lista = cargarLista();   // IDs en el orden en que se agregaron
+
+const btnCarrito = document.getElementById('btnCarrito');
+const carritoCount = document.getElementById('carritoCount');
+const cartModal = document.getElementById('cartModal');
+const cartItems = document.getElementById('cartItems');
+const cartResumen = document.getElementById('cartResumen');
+const cartVacio = document.getElementById('cartVacio');
+const btnWhatsApp = document.getElementById('btnEnviarWhatsApp');
+const btnVaciar = document.getElementById('btnVaciarLista');
+const toast = document.getElementById('toast');
+
+// localStorage puede fallar (modo privado, storage bloqueado): la lista sigue en memoria
+function cargarLista() {
+    try {
+        const data = JSON.parse(localStorage.getItem(LISTA_KEY));
+        return Array.isArray(data) ? data.filter(x => typeof x === 'string') : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function guardarLista() {
+    try {
+        localStorage.setItem(LISTA_KEY, JSON.stringify(lista));
+    } catch (e) { /* sin storage: no pasa nada */ }
+}
+
+const enLista = (id) => lista.includes(id);
+const libroPorId = (id) => libros.find(l => l.ID === id);
+
+function pintarBotonInteres(btn, activo, nombre) {
+    btn.classList.toggle('activo', activo);
+    btn.setAttribute('aria-pressed', activo ? 'true' : 'false');
+    btn.setAttribute('aria-label', (activo ? 'Quitar de mis consultas: ' : 'Me interesa: ') + nombre);
+    btn.textContent = activo ? '❤️ Me interesa ✓' : '🤍 Me interesa';
+}
+
+function mostrarAviso(texto) {
+    toast.textContent = texto;
+    toast.classList.add('visible');
+    clearTimeout(mostrarAviso.t);
+    mostrarAviso.t = setTimeout(() => toast.classList.remove('visible'), 7000);
+}
+
+// Saca de la lista los libros que ya no están en libros.json (vendidos)
+function depurarLista() {
+    const vigentes = new Set(libros.map(l => l.ID));
+    const quedan = lista.filter(id => vigentes.has(id));
+    const sacados = lista.length - quedan.length;
+    if (sacados > 0) {
+        lista = quedan;
+        guardarLista();
+        mostrarAviso(sacados === 1
+            ? 'Un libro de tu lista ya no está disponible y lo sacamos 📚'
+            : `${sacados} libros de tu lista ya no están disponibles y los sacamos 📚`);
+    }
+}
+
+function alternarInteres(id) {
+    if (enLista(id)) lista = lista.filter(x => x !== id);
+    else lista.push(id);
+    guardarLista();
+    // Actualiza solo el botón de esa tarjeta (sin redibujar la grilla)
+    const btn = grid.querySelector(`.btn-interes[data-id="${CSS.escape(id)}"]`);
+    const libro = libroPorId(id);
+    if (btn && libro) pintarBotonInteres(btn, enLista(id), libro.Nombre);
+    actualizarCarrito();
+}
+
+function totalesLista() {
+    let total = 0, aConsultar = 0;
+    lista.forEach(id => {
+        const l = libroPorId(id);
+        if (l && typeof l.Precio === 'number' && l.Precio > 0) total += l.Precio;
+        else aConsultar++;
+    });
+    return { total, aConsultar };
+}
+
+function lineaTotal({ total, aConsultar }) {
+    if (total > 0 && aConsultar > 0) return `${formatearPrecio(total)} (+${aConsultar} a consultar)`;
+    if (total > 0) return formatearPrecio(total);
+    return 'a consultar';
+}
+
+function armarMensaje() {
+    const lineas = lista.map((id, i) => {
+        const l = libroPorId(id);
+        const precio = typeof l.Precio === 'number' && l.Precio > 0 ? formatearPrecio(l.Precio) : 'a consultar';
+        return `${i + 1}. [${l.ID}] ${[l.Nombre, l.Autor, precio].filter(Boolean).join(' · ')}`;
+    });
+    return 'Hola Babel! 📚 Quiero consultar por estos libros:\n\n' +
+        lineas.join('\n') +
+        `\n\nTotal: ${lineaTotal(totalesLista())}` +
+        '\n¿Siguen disponibles? ¿Cómo seguimos con el pago y el envío?';
+}
+
+function actualizarCarrito() {
+    const n = lista.length;
+    carritoCount.textContent = n;
+    btnCarrito.hidden = n === 0;
+    document.body.classList.toggle('tiene-consultas', n > 0);
+
+    // Panel
+    cartItems.innerHTML = '';
+    cartVacio.hidden = n > 0;
+    cartResumen.hidden = n === 0;
+    btnVaciar.hidden = n === 0;
+    btnWhatsApp.classList.toggle('deshabilitado', n === 0);
+
+    if (n === 0) {
+        btnWhatsApp.removeAttribute('href');
+        if (cartModal.classList.contains('active')) cerrarPanel();
+        return;
+    }
+
+    lista.forEach(id => {
+        const l = libroPorId(id);
+        const fila = crear('li', 'cart-item');
+        const info = crear('div', 'cart-item-info');
+        info.appendChild(crear('p', 'cart-item-titulo', l.Nombre));
+        if (l.Autor) info.appendChild(crear('p', 'cart-item-autor', l.Autor));
+        const tiene = typeof l.Precio === 'number' && l.Precio > 0;
+        info.appendChild(crear('p', tiene ? 'cart-item-precio' : 'cart-item-precio consultar',
+            tiene ? formatearPrecio(l.Precio) : 'A consultar'));
+        const quitar = crear('button', 'btn-quitar', '×');
+        quitar.type = 'button';
+        quitar.dataset.id = id;
+        quitar.setAttribute('aria-label', `Quitar ${l.Nombre}`);
+        fila.appendChild(info);
+        fila.appendChild(quitar);
+        cartItems.appendChild(fila);
+    });
+
+    const t = totalesLista();
+    cartResumen.textContent = `Total: ${lineaTotal(t)}`;
+    btnWhatsApp.href = `https://wa.me/${WHATSAPP_NUM}?text=${encodeURIComponent(armarMensaje())}`;
+}
+
+function abrirPanel() {
+    cartModal.classList.add('active');
+}
+function cerrarPanel() {
+    cartModal.classList.remove('active');
+}
+
+// ==========================================
 // EVENTOS
 // ==========================================
 document.getElementById('searchInput').addEventListener('input', debounce(filtrar));
 
 const cerrarModal = () => modal.classList.remove('active');
 
-btnOpenFilters.addEventListener('click', () => modal.classList.add('active'));
+btnOpenFilters.addEventListener('click', () => {
+    actualizarOpciones();
+    modal.classList.add('active');
+});
+selAutor.addEventListener('change', actualizarOpciones);
+selIdioma.addEventListener('change', actualizarOpciones);
 btnCloseFilters.addEventListener('click', cerrarModal);
 modal.addEventListener('click', (e) => {
     if (e.target === modal) cerrarModal();
 });
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') cerrarModal();
+    if (e.key === 'Escape') { cerrarModal(); cerrarPanel(); }
 });
 
 btnApplyFilters.addEventListener('click', () => {
@@ -217,8 +400,38 @@ btnApplyFilters.addEventListener('click', () => {
 });
 
 btnResetFilters.addEventListener('click', () => {
-    document.getElementById('autorFilter').value = '';
-    document.getElementById('idiomaFilter').value = '';
+    selAutor.value = '';
+    selIdioma.value = '';
+    actualizarOpciones();
     filtrar();
     cerrarModal();
+});
+
+// --- Mis consultas ---
+grid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-interes');
+    if (btn) alternarInteres(btn.dataset.id);
+});
+btnCarrito.addEventListener('click', abrirPanel);
+document.getElementById('btnCerrarCarrito').addEventListener('click', cerrarPanel);
+cartModal.addEventListener('click', (e) => {
+    if (e.target === cartModal) cerrarPanel();
+});
+cartItems.addEventListener('click', (e) => {
+    const q = e.target.closest('.btn-quitar');
+    if (q) alternarInteres(q.dataset.id);
+});
+btnVaciar.addEventListener('click', () => {
+    const ids = lista.slice();
+    lista = [];
+    guardarLista();
+    ids.forEach(id => {
+        const btn = grid.querySelector(`.btn-interes[data-id="${CSS.escape(id)}"]`);
+        const libro = libroPorId(id);
+        if (btn && libro) pintarBotonInteres(btn, false, libro.Nombre);
+    });
+    actualizarCarrito();
+});
+btnWhatsApp.addEventListener('click', (e) => {
+    if (lista.length === 0) e.preventDefault();
 });

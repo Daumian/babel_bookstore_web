@@ -72,6 +72,33 @@
         </p>
     </footer>
 
+    <button id="btnCarrito" class="btn-carrito" hidden>
+        <span aria-hidden="true">📚</span> Mis consultas
+        <span id="carritoCount" class="carrito-count">0</span>
+    </button>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="cartModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="cartTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="cartTitle">Mis consultas</h2>
+                <button id="btnCerrarCarrito" class="btn-close" aria-label="Cerrar mis consultas">&times;</button>
+            </div>
+
+            <div class="cart-body">
+                <p id="cartVacio" class="cart-vacio">Todavía no marcaste ningún libro. Tocá 🤍 <strong>Me interesa</strong> en los que quieras consultar.</p>
+                <ul id="cartItems" class="cart-list"></ul>
+                <p id="cartResumen" class="cart-resumen" hidden></p>
+            </div>
+
+            <div class="modal-footer cart-footer">
+                <button id="btnVaciarLista" class="btn-limpiar" hidden>Vaciar lista</button>
+                <a id="btnEnviarWhatsApp" class="btn-aplicar btn-whatsapp deshabilitado" target="_blank" rel="noopener">Enviar consulta por WhatsApp</a>
+            </div>
+        </div>
+    </div>
+
     <div id="filterModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="filterTitle">
         <div class="modal-content">
             <div class="modal-header">
