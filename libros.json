@@ -2120,36 +2120,6 @@
         "URL_Foto": "https://books.google.com/books/content?id=OeFqDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
     },
     {
-        "ID": "IN00214",
-        "Nombre": "The Lord of the Ring Part One",
-        "Autor": "J. R. R. Tolkien",
-        "Genero": "",
-        "Estado": "Muy Buena",
-        "Idioma": "Inglés",
-        "Precio": null,
-        "URL_Foto": "https://covers.openlibrary.org/b/id/13129075-L.jpg"
-    },
-    {
-        "ID": "IN00215",
-        "Nombre": "The Lord of the Ring Part Two",
-        "Autor": "J. R. R. Tolkien",
-        "Genero": "",
-        "Estado": "Muy Buena",
-        "Idioma": "Inglés",
-        "Precio": null,
-        "URL_Foto": "https://books.google.com/books/content?id=12e8PJ2T7sQC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
-    },
-    {
-        "ID": "IN00216",
-        "Nombre": "The Lord of the Ring Part Three",
-        "Autor": "J. R. R. Tolkien",
-        "Genero": "",
-        "Estado": "Muy Buena",
-        "Idioma": "Inglés",
-        "Precio": null,
-        "URL_Foto": "https://books.google.com/books/content?id=bvM9EAAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
-    },
-    {
         "ID": "IN00218",
         "Nombre": "Void Moon",
         "Autor": "Michael Connelly",
